@@ -67,7 +67,7 @@
         android:text="Sign in"
         android:background="@color/darkerGreen"
         android:textColor="@color/whiteTextColor"
-        android:onClick="postSignIn"
+        android:onClick="onSignIn"
         android:layout_margin="10dp"
         android:layout_below="@+id/password_input_google"
         android:layout_centerHorizontal="true" />

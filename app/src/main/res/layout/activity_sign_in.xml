@@ -78,7 +78,7 @@
                         android:layout_centerHorizontal="true"
                         android:layout_marginBottom="15dp"
                         android:background="@color/colorAccentFaded"
-                        android:onClick="postSignIn"
+                        android:onClick="onSignIn"
                         android:padding="10dp"
                         android:text="Sign in" />
 
