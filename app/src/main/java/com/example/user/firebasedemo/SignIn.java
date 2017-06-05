@@ -109,9 +109,17 @@ public class SignIn extends AppCompatActivity {
     void getValues(){
         if (email==null && password==null){
             if (emailInput.getText() != null)
-                email = emailInput.getText().toString();
+                email = emailInput.getText().toString().trim();
+            if (email.length()==0){
+                emailInput.setError("email cannot be empty");
+                emailInput.requestFocus();
+            }
             if (passwordInput.getText() != null)
-                password = passwordInput.getText().toString();
+                password = passwordInput.getText().toString().trim();
+            if (password.length()==0){
+                passwordInput.setError("password cannot be empty");
+                passwordInput.requestFocus();
+            }
         }
     }
     public void goToSignUp(View view){
@@ -119,9 +127,16 @@ public class SignIn extends AppCompatActivity {
         startActivity(intent);
     }
 
-    public  void onSignIn(View view){
+    public void onSignIn(View view){
         getValues();
         signIn();
+        Intent intent = new Intent(SignIn.this, NavigationDrawer.class);
+        intent.putExtra("email", email);
+        intent.putExtra("name", name);
+        startActivity(intent);
+    }
+
+    void whenSignedIn(String name, String email){
         Intent intent = new Intent(SignIn.this, NavigationDrawer.class);
         intent.putExtra("email", email);
         intent.putExtra("name", name);
@@ -139,6 +154,7 @@ public class SignIn extends AppCompatActivity {
                     String user_name = user.getDisplayName();
                     String user_email = user.getEmail();
                     Log.e(TAG, "on auth state changed: name = "+user_name+" , email = "+user_email);
+                    whenSignedIn("Username", user_email);
                     String user_id = user.getUid();
                     Log.e(TAG, "on auth state changed: user id = "+user_id);
                 }else{
@@ -171,8 +187,9 @@ public class SignIn extends AppCompatActivity {
                             Log.e(TAG, "create account : on complete");
                             if (task.isSuccessful())
                                 Log.e(TAG, "task successful");
-                            else
-                                Log.e(TAG, "task not successful");
+                            else {
+                                Log.e(TAG, "task not successful"+task.getException().getMessage());
+                            }
                         }
                     });
         }else
@@ -180,18 +197,26 @@ public class SignIn extends AppCompatActivity {
     }
 
     void signIn(){
-        if (email!=null && password!=null) {
-            auth.signInWithEmailAndPassword(email, password)
-                    .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
-                        @Override
-                        public void onComplete(@NonNull Task<AuthResult> task) {
-                            Log.e(TAG, "sign in : on complete ");
-                            if (task.isSuccessful())
-                                Log.e(TAG, "task successful");
-                            else
-                                Log.e(TAG, "task not successful");
-                        }
-                    });
+        if (email!=null && password!=null ) {
+            if (email.length()!=0 && password.length()!=0) {
+                auth.signInWithEmailAndPassword(email, password)
+                        .addOnCompleteListener(new OnCompleteListener<AuthResult>() {
+                            @Override
+                            public void onComplete(@NonNull Task<AuthResult> task) {
+                                Log.e(TAG, "sign in : on complete ");
+                                if (task.isSuccessful())
+                                    Log.e(TAG, "task successful");
+                                else {
+                                    if (task.getException().getMessage().contains("There is no user record corresponding to this identifier. The user may have been deleted.")) {
+                                        createAccount();
+                                        signIn();
+                                    }
+                                    Log.e(TAG, "task not successful " + task.getException().getMessage());
+                                }
+                            }
+                        });
+            }else
+                Log.e(TAG, "signIn() : email or password is empty");
         }else
             Log.e(TAG, "signIn() : email or password is null");
     }
