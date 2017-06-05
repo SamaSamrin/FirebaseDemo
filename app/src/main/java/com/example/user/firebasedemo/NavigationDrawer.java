@@ -1,8 +1,12 @@
 package com.example.user.firebasedemo;
 
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -13,8 +17,14 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 
+import com.google.firebase.auth.FirebaseAuth;
+
 public class NavigationDrawer extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
+
+    FirebaseAuth auth;
+    private static final String TAG = "Navigation Drawer";
+    AlertDialog.Builder logOutDialogBuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,10 +42,13 @@ public class NavigationDrawer extends AppCompatActivity
 //            }
 //        });
 
+        auth = FirebaseAuth.getInstance();
+        logOutDialogBuilder = new AlertDialog.Builder(this);
+
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-        drawer.setDrawerListener(toggle);
+        drawer.addDrawerListener(toggle);
         toggle.syncState();
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
@@ -67,11 +80,37 @@ public class NavigationDrawer extends AppCompatActivity
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_logout) {
+            Log.e(TAG, "action log out pressed");
+            auth.signOut();
+            //showLogOutDialog();
+            Intent intent = new Intent(NavigationDrawer.this, SignIn.class);
+            intent.putExtra("source", "NavDrawer");
+            startActivity(intent);
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    void showLogOutDialog(){
+        Log.e(TAG, "show log out dialogue()");
+        logOutDialogBuilder.setMessage("Log Out?");
+        logOutDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.e(TAG, "YES clicked");
+                auth.signOut();
+            }
+        });
+        logOutDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Log.e(TAG, "NO clicked");
+                dialogInterface.dismiss();
+            }
+        });
+        logOutDialogBuilder.show();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -97,5 +136,16 @@ public class NavigationDrawer extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+//        logOutDialogBuilder.setOnDismissListener(new DialogInterface.OnDismissListener() {
+//            @Override
+//            public void onDismiss(DialogInterface dialogInterface) {
+//                dialogInterface.dismiss();
+//            }
+//        });
     }
 }

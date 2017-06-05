@@ -13,10 +13,9 @@
         <activity
             android:name=".NavigationDrawer"
             android:label="@string/app_name"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar"/>
         <activity
-            android:name=".SignIn"
-            android:label="Sign In">
+            android:name=".SignIn">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

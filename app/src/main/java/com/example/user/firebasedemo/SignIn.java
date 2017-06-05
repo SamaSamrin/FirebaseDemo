@@ -1,7 +1,9 @@
 package com.example.user.firebasedemo;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.support.annotation.NonNull;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -49,13 +51,17 @@ public class SignIn extends AppCompatActivity {
 
         Bundle intentInfo = getIntent().getExtras();
         if (intentInfo!=null){
-            name = intentInfo.getString("fullname");
-            email = intentInfo.getString("email");
-            password = intentInfo.getString("password");
-            phoneNumber = intentInfo.getString("number");
-            boolean passwordsMatch = intentInfo.getBoolean("passwords match");
-            if (!passwordsMatch)
-                Log.e(TAG, "passwords dont match");
+            if (intentInfo.get("source").equals("SignUp")) {
+                name = intentInfo.getString("fullname");
+                email = intentInfo.getString("email");
+                password = intentInfo.getString("password");
+                phoneNumber = intentInfo.getString("number");
+                boolean passwordsMatch = intentInfo.getBoolean("passwords match");
+                if (!passwordsMatch)
+                    Log.e(TAG, "passwords dont match");
+                Log.e(TAG, "received intent info");
+                createAccount();
+            }
         }else{
             Log.e(TAG, "received intent bundle is null");
         }
@@ -196,6 +202,20 @@ public class SignIn extends AppCompatActivity {
             Log.e(TAG, "signIn() : email or password is null");
     }
 
+    void showSignUpDialogue(){
+        Log.e(TAG, "show signUp dialog");
+        AlertDialog.Builder signUpDialogBuilder = new AlertDialog.Builder(this);
+        signUpDialogBuilder.setMessage("Not a member?");
+        signUpDialogBuilder.setPositiveButton("Sign Up!", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                Intent intent = new Intent(SignIn.this, SignUp.class);
+                startActivity(intent);
+            }
+        });
+        signUpDialogBuilder.show();
+    }
+
     void signIn(){
         if (email!=null && password!=null ) {
             if (email.length()!=0 && password.length()!=0) {
@@ -208,6 +228,7 @@ public class SignIn extends AppCompatActivity {
                                     Log.e(TAG, "task successful");
                                 else {
                                     if (task.getException().getMessage().contains("There is no user record corresponding to this identifier. The user may have been deleted.")) {
+                                        showSignUpDialogue();
                                         createAccount();
                                         signIn();
                                     }

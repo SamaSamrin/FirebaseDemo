@@ -83,6 +83,7 @@ public class SignUp extends AppCompatActivity {
         intent.putExtra("password", password);
         intent.putExtra("passwords match", passwordsMatch);
         intent.putExtra("phone number", number);
+        intent.putExtra("source", "SignUp");
         startActivity(intent);
     }
 }
