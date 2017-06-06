@@ -2,6 +2,8 @@ package com.example.user.firebasedemo;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.LinearGradient;
+import android.net.Uri;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -14,13 +16,22 @@ import android.widget.TabHost;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+
+import java.io.File;
 
 public class SignIn extends AppCompatActivity {
 
@@ -30,6 +41,9 @@ public class SignIn extends AppCompatActivity {
     FirebaseDatabase database;
     DatabaseReference databaseReference;
     DatabaseReference usersReference;
+    FirebaseStorage storage;
+    StorageReference storageReference;
+    StorageReference imageReference;
 
     EditText emailInput;
     EditText passwordInput;
@@ -51,6 +65,10 @@ public class SignIn extends AppCompatActivity {
         database = FirebaseDatabase.getInstance();
         databaseReference = database.getReference();
         usersReference = databaseReference.child("Users");
+        setDatabaseListener();
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
+        imageReference = storageReference.child("images");
 
         emailInput = (EditText) findViewById(R.id.email_input);
         passwordInput = (EditText) findViewById(R.id.password_input);
@@ -262,6 +280,40 @@ public class SignIn extends AppCompatActivity {
                 Log.e(TAG, "signIn() : email or password is empty");
         }else
             Log.e(TAG, "signIn() : email or password is null");
+    }
+
+    void addFileToStorage(Uri fileUrl){
+        storageReference.putFile(fileUrl)
+                .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Log.e(TAG, "on Success");
+                        //Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "on failure");
+                    }
+                });
+    }
+
+    void setDatabaseListener(){
+        usersReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "on data change, data snapshot - "+dataSnapshot.toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "on cancelled");
+                if (databaseError!=null){
+                    Log.e(TAG, "onCancelled error - "+databaseError.getMessage());
+                }
+            }
+        });
     }
 }
 
