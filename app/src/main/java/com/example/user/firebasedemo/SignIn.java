@@ -18,12 +18,18 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class SignIn extends AppCompatActivity {
 
     private static final String TAG = "Sign In";
     FirebaseAuth auth;
     FirebaseAuth.AuthStateListener authStateListener;
+    FirebaseDatabase database;
+    DatabaseReference databaseReference;
+    DatabaseReference usersReference;
 
     EditText emailInput;
     EditText passwordInput;
@@ -42,6 +48,9 @@ public class SignIn extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         setAuthStateListener();
+        database = FirebaseDatabase.getInstance();
+        databaseReference = database.getReference();
+        usersReference = databaseReference.child("Users");
 
         emailInput = (EditText) findViewById(R.id.email_input);
         passwordInput = (EditText) findViewById(R.id.password_input);
@@ -191,10 +200,22 @@ public class SignIn extends AppCompatActivity {
                         @Override
                         public void onComplete(@NonNull Task<AuthResult> task) {
                             Log.e(TAG, "create account : on complete");
-                            if (task.isSuccessful())
-                                Log.e(TAG, "task successful");
+                            if (task.isSuccessful()) {
+                                Log.e(TAG, "created account successfully");
+                                User user = new User(email, password);
+                                    DatabaseReference newUserLocation = usersReference.push();
+                                    newUserLocation.setValue(user, new DatabaseReference.CompletionListener() {
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                            if (databaseError!=null)
+                                                Log.e(TAG, "error exists? - " + databaseError.getMessage());
+                                            else
+                                                Log.e(TAG, "new user pushed to database successfully");
+                                        }
+                                    });
+                                }
                             else {
-                                Log.e(TAG, "task not successful"+task.getException().getMessage());
+                                Log.e(TAG, "create account not successful"+task.getException().getMessage());
                             }
                         }
                     });
@@ -213,6 +234,7 @@ public class SignIn extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+        signUpDialogBuilder.create();
         signUpDialogBuilder.show();
     }
 
