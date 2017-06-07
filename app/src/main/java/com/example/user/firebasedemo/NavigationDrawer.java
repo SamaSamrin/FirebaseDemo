@@ -5,6 +5,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.View;
@@ -118,11 +120,17 @@ public class NavigationDrawer extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
+        Fragment fragment = new CameraFrag();
+        FragmentManager manager = getSupportFragmentManager();
+        manager.beginTransaction().add(R.id.fragment_container, fragment).commit();
 
         if (id == R.id.nav_camera) {
             // Handle the camera action
+            fragment = new CameraFrag();
+            manager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
         } else if (id == R.id.nav_gallery) {
-
+            fragment = new PhotoPickerFrag();
+            manager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
         } else if (id == R.id.nav_slideshow) {
 
         } else if (id == R.id.nav_manage) {
