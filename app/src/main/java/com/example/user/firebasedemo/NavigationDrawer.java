@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
 
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -45,7 +46,6 @@ public class NavigationDrawer extends AppCompatActivity
 //        });
 
         auth = FirebaseAuth.getInstance();
-        logOutDialogBuilder = new AlertDialog.Builder(this);
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -97,22 +97,23 @@ public class NavigationDrawer extends AppCompatActivity
 
     void showLogOutDialog(){
         Log.e(TAG, "show log out dialogue()");
-        logOutDialogBuilder.setMessage("Log Out?");
-        logOutDialogBuilder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Log.e(TAG, "YES clicked");
-                auth.signOut();
-            }
-        });
-        logOutDialogBuilder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                Log.e(TAG, "NO clicked");
-                dialogInterface.dismiss();
-            }
-        });
-        logOutDialogBuilder.show();
+        AlertDialog logOutDialog = new AlertDialog.Builder(this)
+                .setMessage("Log Out?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Log.e(TAG, "YES clicked");
+                        auth.signOut();
+                    }
+                })
+                .setNegativeButton("No", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        Log.e(TAG, "NO clicked");
+                        dialogInterface.dismiss();
+                    }
+                 })
+                .show();
     }
 
     @SuppressWarnings("StatementWithEmptyBody")
@@ -132,7 +133,9 @@ public class NavigationDrawer extends AppCompatActivity
             fragment = new PhotoPickerFrag();
             manager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
         } else if (id == R.id.nav_slideshow) {
-
+            //uploading docs
+            fragment = new DocPickerFrag();
+            manager.beginTransaction().replace(R.id.fragment_container, fragment).commit();
         } else if (id == R.id.nav_manage) {
 
         } else if (id == R.id.nav_share) {

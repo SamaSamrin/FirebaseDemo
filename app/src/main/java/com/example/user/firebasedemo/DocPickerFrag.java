@@ -9,12 +9,12 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageButton;
+import android.widget.Button;
 
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -23,22 +23,22 @@ import static android.app.Activity.RESULT_OK;
 /**
  * A simple {@link Fragment} subclass.
  * Activities that contain this fragment must implement the
- * {@link PhotoPickerFrag.OnFragmentInteractionListener} interface
+ * {@link DocPickerFrag.OnFragmentInteractionListener} interface
  * to handle interaction events.
- * Use the {@link PhotoPickerFrag#newInstance} factory method to
+ * Use the {@link DocPickerFrag#newInstance} factory method to
  * create an instance of this fragment.
  */
-public class PhotoPickerFrag extends Fragment {
+public class DocPickerFrag extends Fragment {
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
-    private static final String TAG = "Photo Picker Fragment";
-    private static final int RC_PHOTO_PICKER = 2;
+    private static final String TAG = "Doc Picker Fragment";
+    private static final int RC_DOC_PICKER = 3;
 
-    ImageButton trollButton;
     FirebaseStorage storage;
     StorageReference storageReference;
+    DatabaseReference databaseReference;
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -46,7 +46,7 @@ public class PhotoPickerFrag extends Fragment {
 
     private OnFragmentInteractionListener mListener;
 
-    public PhotoPickerFrag() {
+    public DocPickerFrag() {
         // Required empty public constructor
     }
 
@@ -56,11 +56,11 @@ public class PhotoPickerFrag extends Fragment {
      *
      * @param param1 Parameter 1.
      * @param param2 Parameter 2.
-     * @return A new instance of fragment PhotoPickerFrag.
+     * @return A new instance of fragment DocPickerFrag.
      */
     // TODO: Rename and change types and number of parameters
-    public static PhotoPickerFrag newInstance(String param1, String param2) {
-        PhotoPickerFrag fragment = new PhotoPickerFrag();
+    public static DocPickerFrag newInstance(String param1, String param2) {
+        DocPickerFrag fragment = new DocPickerFrag();
         Bundle args = new Bundle();
         args.putString(ARG_PARAM1, param1);
         args.putString(ARG_PARAM2, param2);
@@ -71,8 +71,11 @@ public class PhotoPickerFrag extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         storage = FirebaseStorage.getInstance();
-        storageReference = storage.getReference().child("images");
+        storageReference = storage.getReference().child("docs");
+        databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -80,18 +83,33 @@ public class PhotoPickerFrag extends Fragment {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_photo_picker, container, false);
-        trollButton = (ImageButton) view.findViewById(R.id.imageButton);
-        trollButton.setOnClickListener(new View.OnClickListener() {
+        View view = inflater.inflate(R.layout.fragment_doc_picker, container, false);
+        Button docPickerButton = (Button)view.findViewById(R.id.doc_picker_button);
+        docPickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                onClickImageButton(view);
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("file/*");
+                intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
+                startActivityForResult(Intent.createChooser(intent, "Choose a file"), RC_DOC_PICKER);
             }
         });
         return view;
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode==RC_DOC_PICKER){
+            if (resultCode == RESULT_OK){
+                Log.e(TAG, "file received - "+data.getData().getLastPathSegment());
+            }else if (resultCode == RESULT_CANCELED){
+                Log.e(TAG, "file not received");
+            }
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     // TODO: Rename method, update argument and hook method into UI event
@@ -107,7 +125,7 @@ public class PhotoPickerFrag extends Fragment {
         if (context instanceof OnFragmentInteractionListener) {
             mListener = (OnFragmentInteractionListener) context;
         } else {
-            Log.e(TAG, "must implement on Fragment Interaction Listener");
+            Log.e(TAG, "must implement OnFragmentInteractionListener" );
 //            throw new RuntimeException(context.toString()
 //                    + " must implement OnFragmentInteractionListener");
         }
@@ -117,41 +135,6 @@ public class PhotoPickerFrag extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
-    }
-
-    public void onClickImageButton(View view){
-        Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-        intent.setType("image/*");
-        intent.putExtra(Intent.EXTRA_LOCAL_ONLY, true);
-        startActivityForResult(Intent.createChooser(intent, "Choose a photo"), RC_PHOTO_PICKER);
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode==RC_PHOTO_PICKER){
-            if (resultCode == RESULT_OK) {
-                Log.e(TAG, "photo received");
-                Uri imageUri = data.getData();
-                Log.e(TAG, "image uri = "+imageUri.toString());
-                //make a reference to the specific photo on the cloud with the last segment of its uri
-                // as its name:
-                Log.e(TAG, "new image name - "+imageUri.getLastPathSegment());
-                StorageReference newImageRef = storageReference.child(imageUri.getLastPathSegment());
-                UploadTask uploadTask = newImageRef.putFile(imageUri);//uploading file to firebase storage
-                uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                    @Override
-                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                        @SuppressWarnings("VisibleForTests")
-                        Uri uri = taskSnapshot.getDownloadUrl();
-                        Log.e(TAG, "download url - "+uri);
-                    }
-                });
-            } else if (resultCode == RESULT_CANCELED) {
-                Log.e(TAG, "photo not received");
-               // finish();
-            }
-        }
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     /**
