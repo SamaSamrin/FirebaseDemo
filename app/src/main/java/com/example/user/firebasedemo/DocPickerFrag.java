@@ -1,9 +1,12 @@
 package com.example.user.firebasedemo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,10 +14,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import static android.app.Activity.RESULT_CANCELED;
 import static android.app.Activity.RESULT_OK;
@@ -35,6 +40,13 @@ public class DocPickerFrag extends Fragment {
     private static final String ARG_PARAM2 = "param2";
     private static final String TAG = "Doc Picker Fragment";
     private static final int RC_DOC_PICKER = 3;
+
+    // Storage Permissions
+    private static final int REQUEST_EXTERNAL_STORAGE = 1;
+    private static String[] PERMISSIONS_STORAGE = {
+            android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            android.Manifest.permission.WRITE_EXTERNAL_STORAGE
+    };
 
     FirebaseStorage storage;
     StorageReference storageReference;
@@ -76,6 +88,13 @@ public class DocPickerFrag extends Fragment {
         storageReference = storage.getReference().child("docs");
         databaseReference = FirebaseDatabase.getInstance().getReference().child("Users");
 
+        if (storageReference==null)
+            Log.e(TAG, "storage reference is null");
+        if (databaseReference==null)
+            Log.e(TAG, "database reference is null");
+
+        verifyStoragePermissions(this.getActivity());
+
         if (getArguments() != null) {
             mParam1 = getArguments().getString(ARG_PARAM1);
             mParam2 = getArguments().getString(ARG_PARAM2);
@@ -105,6 +124,17 @@ public class DocPickerFrag extends Fragment {
         if (requestCode==RC_DOC_PICKER){
             if (resultCode == RESULT_OK){
                 Log.e(TAG, "file received - "+data.getData().getLastPathSegment());
+                Uri uri = data.getData();
+                StorageReference newDocRef = storageReference.child(uri.getLastPathSegment());
+                UploadTask task = newDocRef.putFile(uri);
+                task.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                    @Override
+                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                        Uri uri = taskSnapshot.getDownloadUrl();
+                        if (uri!=null)
+                            Log.e(TAG, "download url of doc = "+uri.toString());
+                    }
+                });
             }else if (resultCode == RESULT_CANCELED){
                 Log.e(TAG, "file not received");
             }
@@ -135,6 +165,21 @@ public class DocPickerFrag extends Fragment {
     public void onDetach() {
         super.onDetach();
         mListener = null;
+    }
+
+    public static void verifyStoragePermissions(Activity activity) {
+        Log.e(TAG, "verifyStorage: activity name = "+activity.getLocalClassName());
+        // Check if we have write permission
+        int permission = ActivityCompat.checkSelfPermission(activity, android.Manifest.permission.WRITE_EXTERNAL_STORAGE);
+
+        if (permission != PackageManager.PERMISSION_GRANTED) {
+            // We don't have permission so prompt the user
+            ActivityCompat.requestPermissions(
+                    activity,
+                    PERMISSIONS_STORAGE,
+                    REQUEST_EXTERNAL_STORAGE
+            );
+        }
     }
 
     /**

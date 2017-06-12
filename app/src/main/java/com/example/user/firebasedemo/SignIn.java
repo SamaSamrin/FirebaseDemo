@@ -79,16 +79,21 @@ public class SignIn extends AppCompatActivity {
 
         Bundle intentInfo = getIntent().getExtras();
         if (intentInfo!=null){
-            if (intentInfo.get("source").equals("SignUp")) {
-                name = intentInfo.getString("fullname");
-                email = intentInfo.getString("email");
-                password = intentInfo.getString("password");
-                phoneNumber = intentInfo.getString("number");
-                boolean passwordsMatch = intentInfo.getBoolean("passwords match");
-                if (!passwordsMatch)
-                    Log.e(TAG, "passwords dont match");
-                Log.e(TAG, "received intent info");
-                createAccount();
+            String source = intentInfo.getString("source");
+            if (source!=null) {
+                if (source.equals("SignUp")) {
+                    name = intentInfo.getString("fullname");
+                    email = intentInfo.getString("email");
+                    password = intentInfo.getString("password");
+                    phoneNumber = intentInfo.getString("number");
+                    boolean passwordsMatch = intentInfo.getBoolean("passwords match");
+                    if (!passwordsMatch)
+                        Log.e(TAG, "passwords dont match");
+                    Log.e(TAG, "received intent info");
+                    createAccount();
+                }
+            }else {
+                Log.e(TAG, "source is null");
             }
         }else{
             Log.e(TAG, "received intent bundle is null");
