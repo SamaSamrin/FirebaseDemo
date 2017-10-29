@@ -4,7 +4,7 @@ buildscript {
     repositories {
         jcenter()
         apply plugin: 'maven'
-        //google()
+        google()
         maven {
             url 'https://maven.google.com/'
             name 'Google'
