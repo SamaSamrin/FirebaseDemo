@@ -32,6 +32,18 @@
         </activity>
         <activity android:name=".SignUp"
             android:label="Sign Up"/>
+        <service
+            android:name=".Messaging.InstanceIdService">
+            <intent-filter>
+                <action android:name="com.google.firebase.INSTANCE_ID_EVENT"/>
+            </intent-filter>
+        </service>
+        <service android:name=".Messaging.MessagingService">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+                <action android:name="android.intent.action.RESPOND_VIA_MESSAGE"/>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

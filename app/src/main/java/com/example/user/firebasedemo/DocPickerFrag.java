@@ -106,6 +106,7 @@ public class DocPickerFrag extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_doc_picker, container, false);
+
         Button docPickerButton = (Button)view.findViewById(R.id.doc_picker_button);
         docPickerButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -116,6 +117,8 @@ public class DocPickerFrag extends Fragment {
                 startActivityForResult(Intent.createChooser(intent, "Choose a file"), RC_DOC_PICKER);
             }
         });
+
+
         return view;
     }
 
@@ -131,8 +134,10 @@ public class DocPickerFrag extends Fragment {
                     @Override
                     public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
                         Uri uri = taskSnapshot.getDownloadUrl();
-                        if (uri!=null)
-                            Log.e(TAG, "download url of doc = "+uri.toString());
+                        if (uri!=null) {
+                            Log.e(TAG, "download url of doc = " + uri.toString());
+                            Log.e(TAG, "metadata of the doc = "+ taskSnapshot.getMetadata());
+                        }
                     }
                 });
             }else if (resultCode == RESULT_CANCELED){

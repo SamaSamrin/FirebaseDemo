@@ -39,9 +39,13 @@ public class SignIn extends AppCompatActivity {
     private static final String TAG = "Sign In";
     FirebaseAuth auth;
     FirebaseAuth.AuthStateListener authStateListener;
+
     FirebaseDatabase database;
     DatabaseReference databaseReference;
     DatabaseReference usersReference;
+    DatabaseReference studentsReference;
+    DatabaseReference teachersReference;
+
     FirebaseStorage storage;
     StorageReference storageReference;
     StorageReference imageReference;
@@ -63,10 +67,14 @@ public class SignIn extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
         setAuthStateListener();
+
         database = FirebaseDatabase.getInstance();
         databaseReference = database.getReference();
         usersReference = databaseReference.child("Users");
+        studentsReference = usersReference.child("students");
+        teachersReference = usersReference.child("teachers");
         setDatabaseListener();
+
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
         imageReference = storageReference.child("images");
@@ -306,6 +314,7 @@ public class SignIn extends AppCompatActivity {
     }
 
     void setDatabaseListener(){
+        //general database listener
         usersReference.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -346,6 +355,89 @@ public class SignIn extends AppCompatActivity {
                 }
             }
         });
+        //students database listener
+        studentsReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on student child added - "+s);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on child changed - "+s);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "on child removed");
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on child moved - "+s);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        studentsReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "on student data change, data snapshot - "+dataSnapshot.getValue().toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "on cancelled STUDENTS DATABASE");
+                if (databaseError!=null){
+                    Log.e(TAG, "onCancelled error  STUDENTS DATABASE- "+databaseError.getMessage());
+                }
+            }
+        });
+        //teachers database listeners
+        teachersReference.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on teachers child added - "+s);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on teachers child changed - "+s);
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "on teachers child removed");
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+                Log.e(TAG, "on teachers child moved - "+s);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+        teachersReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Log.e(TAG, "on teachers data change, data snapshot - "+dataSnapshot.getValue().toString());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                Log.e(TAG, "on cancelled TEACHERS DATABASE");
+                if (databaseError!=null){
+                    Log.e(TAG, "onCancelled error TEACHERS DATABASE - "+databaseError.getMessage());
+                }
+            }
+        });
+        }
     }
-}
+
 
